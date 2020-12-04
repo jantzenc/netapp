@@ -13,9 +13,11 @@ resource "aws_iam_role_policy" "nacm-connector-role-policy" {
   policy = <<EOF
 {
     "Version": "2012-10-17",
-    "Statement": [{
+    "Statement": [
+        {
             "Effect": "Allow",
             "Action": [
+                "iam:ListInstanceProfiles",
                 "iam:CreateRole",
                 "iam:DeleteRole",
                 "iam:PutRolePolicy",
@@ -24,10 +26,19 @@ resource "aws_iam_role_policy" "nacm-connector-role-policy" {
                 "iam:AddRoleToInstanceProfile",
                 "iam:RemoveRoleFromInstanceProfile",
                 "iam:DeleteInstanceProfile",
+                "ec2:ModifyVolumeAttribute",
+                "sts:DecodeAuthorizationMessage",
+                "ec2:DescribeImages",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeInstances",
                 "iam:PassRole",
                 "ec2:DescribeInstanceStatus",
                 "ec2:RunInstances",
                 "ec2:ModifyInstanceAttribute",
+                "ec2:CreateTags",
+                "ec2:CreateVolume",
+                "ec2:DescribeVolumes",
+                "ec2:DeleteVolume",
                 "ec2:CreateSecurityGroup",
                 "ec2:DeleteSecurityGroup",
                 "ec2:DescribeSecurityGroups",
@@ -42,34 +53,115 @@ resource "aws_iam_role_policy" "nacm-connector-role-policy" {
                 "ec2:DescribeSubnets",
                 "ec2:DescribeVpcs",
                 "ec2:DescribeDhcpOptions",
+                "ec2:CreateSnapshot",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeSnapshots",
+                "ec2:StopInstances",
+                "ec2:GetConsoleOutput",
                 "ec2:DescribeKeyPairs",
                 "ec2:DescribeRegions",
-                "ec2:DescribeInstances",
-                "ec2:CreateTags",
-                "ec2:DescribeImages",
+                "ec2:DeleteTags",
+                "ec2:DescribeTags",
                 "cloudformation:CreateStack",
                 "cloudformation:DeleteStack",
                 "cloudformation:DescribeStacks",
                 "cloudformation:DescribeStackEvents",
                 "cloudformation:ValidateTemplate",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:ListAllMyBuckets",
+                "s3:GetBucketTagging",
+                "s3:GetBucketLocation",
+                "s3:CreateBucket",
+                "s3:GetBucketPolicyStatus",
+                "s3:GetBucketPublicAccessBlock",
+                "s3:GetBucketAcl",
+                "s3:GetBucketPolicy",
+                "kms:List*",
+                "kms:ReEncrypt*",
+                "kms:Describe*",
+                "kms:CreateGrant",
                 "ec2:AssociateIamInstanceProfile",
                 "ec2:DescribeIamInstanceProfileAssociations",
-                "ec2:DisassociateIamInstanceProfile"
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:DescribeInstanceAttribute",
+                "ce:GetReservationUtilization",
+                "ce:GetDimensionValues",
+                "ce:GetCostAndUsage",
+                "ce:GetTags",
+                "ec2:CreatePlacementGroup",
+                "ec2:DeletePlacementGroup"
             ],
             "Resource": "*"
         },
         {
+            "Sid": "fabricPoolPolicy",
             "Effect": "Allow",
             "Action": [
-                "ec2:TerminateInstances"
+                "s3:DeleteBucket",
+                "s3:GetLifecycleConfiguration",
+                "s3:PutLifecycleConfiguration",
+                "s3:PutBucketTagging",
+                "s3:ListBucketVersions",
+                "s3:GetBucketPolicyStatus",
+                "s3:GetBucketPublicAccessBlock",
+                "s3:GetBucketAcl",
+                "s3:GetBucketPolicy",
+                "s3:PutBucketPublicAccessBlock"
+            ],
+            "Resource": [
+                "arn:aws:s3:::fabric-pool*"
+            ]
+        },
+        {
+            "Sid": "backupPolicy",
+            "Effect": "Allow",
+            "Action": [
+                "s3:DeleteBucket",
+                "s3:GetLifecycleConfiguration",
+                "s3:PutLifecycleConfiguration",
+                "s3:PutBucketTagging",
+                "s3:ListBucketVersions",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:ListAllMyBuckets",
+                "s3:GetBucketTagging",
+                "s3:GetBucketLocation",
+                "s3:GetBucketPolicyStatus",
+                "s3:GetBucketPublicAccessBlock",
+                "s3:GetBucketAcl",
+                "s3:GetBucketPolicy",
+                "s3:PutBucketPublicAccessBlock"
+            ],
+            "Resource": [
+                "arn:aws:s3:::netapp-backup-*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:StartInstances",
+                "ec2:TerminateInstances",
+                "ec2:AttachVolume",
+                "ec2:DetachVolume"
             ],
             "Condition": {
                 "StringLike": {
-                    "ec2:ResourceTag/OCCMInstance": "*"
+                    "ec2:ResourceTag/WorkingEnvironment": "*"
                 }
             },
             "Resource": [
                 "arn:aws:ec2:*:*:instance/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AttachVolume",
+                "ec2:DetachVolume"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:volume/*"
             ]
         }
     ]

@@ -23,6 +23,9 @@ resource "netapp-cloudmanager_cvo_aws" "cvo-aws" {
   subnet_id = var.aws_subnet_id
   vpc_id = var.aws_vpc_id
   capacity_tier = "NONE"
+  svm_password = var.cvo_password
+  client_id = netapp-cloudmanager_connector_aws.cm-aws.id
+
   aws_tag {
     tag_key = "Name"
     tag_value = "cvo-aws"
@@ -31,6 +34,4 @@ resource "netapp-cloudmanager_cvo_aws" "cvo-aws" {
     tag_key = "Project"
     tag_value = "Infrastructure"
   }
-  svm_password = var.cvo_password
-  client_id = netapp-cloudmanager_connector_aws.cm-aws.id
 }
