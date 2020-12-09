@@ -1,9 +1,3 @@
-provider "aws" {
-  profile = var.aws_profile
-  region  = var.aws_region
-}
-
-
 #### IAM Instance Profile for the NetApp Connector (3 resources)
 # # # #
 resource "aws_iam_role_policy" "nacm-connector-role-policy" {
@@ -174,6 +168,7 @@ resource "aws_iam_role" "nacm-connector-role" {
   tags = {
     Name = "nacm-connector-role"
     Project = "Infrastructure"
+    Role = "NetApp CVO POC"
   }
 
   assume_role_policy = <<-EOF
@@ -196,6 +191,7 @@ resource "aws_iam_role" "nacm-connector-role" {
 resource "aws_iam_instance_profile" "nacm-connector-profile" {
   name = "nacm-connector-profile"
   role = aws_iam_role.nacm-connector-role.name
+  depends_on = [aws_iam_role_policy.nacm-connector-role-policy]
 }
 
 
@@ -208,31 +204,180 @@ resource "aws_security_group" "nacm-connector-sg" {
   tags = {
     Name = "nacm-connector-sg"
     Project = "Infrastructure"
+    Role = "NetApp CVO POC"
   }
 
+  ingress {
+    from_port = -1
+    protocol = "icmp"
+    to_port = -1
+    cidr_blocks = var.aws_sg_cidr_1
+  }
   ingress {
     from_port = 80
     protocol = "tcp"
     to_port = 80
-    cidr_blocks = var.aws_sg_cidr
+    cidr_blocks = var.aws_sg_cidr_1
   }
   ingress {
     from_port = 443
     protocol = "tcp"
     to_port = 443
-    cidr_blocks = var.aws_sg_cidr
+    cidr_blocks = var.aws_sg_cidr_1
   }
   ingress {
     from_port = 22
     protocol = "tcp"
     to_port = 22
-    cidr_blocks = var.aws_sg_cidr
+    cidr_blocks = var.aws_sg_cidr_1
   }
 
   egress {
     from_port = 0
     protocol = "-1"
     to_port = 0
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.aws_sg_cidr
+  }
+}
+
+
+#### IAM Security Group for the NetApp CVO instance
+# # # #
+resource "aws_security_group" "nacm-cvo-sg" {
+  name = "nacm-cvo-sg"
+  description = "Allow traffic to the NetApp Connector instance"
+  vpc_id = var.aws_vpc_id
+  tags = {
+    Name = "nacm-cvo-sg"
+    Project = "Infrastructure"
+    Role = "NetApp CVO POC"
+  }
+
+  ingress {
+    from_port = -1
+    protocol = "icmp"
+    to_port = -1
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 80
+    protocol = "tcp"
+    to_port = 80
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 443
+    protocol = "tcp"
+    to_port = 443
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 22
+    protocol = "tcp"
+    to_port = 22
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 749
+    protocol = "tcp"
+    to_port = 749
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 4045
+    protocol = "tcp"
+    to_port = 4046
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 3260
+    protocol = "tcp"
+    to_port = 3260
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 445
+    protocol = "tcp"
+    to_port = 445
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 2049
+    protocol = "tcp"
+    to_port = 2049
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 635
+    protocol = "tcp"
+    to_port = 635
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 161
+    protocol = "tcp"
+    to_port = 162
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 11104
+    protocol = "tcp"
+    to_port = 11105
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 10000
+    protocol = "tcp"
+    to_port = 10000
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 139
+    protocol = "tcp"
+    to_port = 139
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 111
+    protocol = "tcp"
+    to_port = 111
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 635
+    protocol = "udp"
+    to_port = 635
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 161
+    protocol = "udp"
+    to_port = 162
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 4045
+    protocol = "udp"
+    to_port = 4046
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 2049
+    protocol = "udp"
+    to_port = 2049
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+  ingress {
+    from_port = 111
+    protocol = "udp"
+    to_port = 111
+    cidr_blocks = var.aws_sg_cidr_1
+  }
+
+  egress {
+    from_port = 0
+    protocol = "-1"
+    to_port = 0
+    cidr_blocks = var.aws_sg_cidr
   }
 }
