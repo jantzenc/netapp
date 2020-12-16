@@ -12,13 +12,22 @@ terraform {
   }
 }
 
-
 provider "aws" {
-  profile = var.aws_profile
-  region  = var.aws_region
+  profile = data.terraform_remote_state.aws-1.outputs.aws_profile
+  region  = data.terraform_remote_state.aws-1.outputs.aws_region
+}
+
+provider "netapp-cloudmanager" {
+  refresh_token = data.terraform_remote_state.cvo-1.outputs.cm_refresh-token
 }
 
 
-provider "netapp-cloudmanager" {
-  refresh_token = var.cloudmanager_refresh_token
+data "terraform_remote_state" "aws-1" {
+  backend = "local"
+  config = { path = "../aws-1/terraform.tfstate" }
+}
+
+data "terraform_remote_state" "cvo-1" {
+  backend = "local"
+  config = { path = "../cvo-1/terraform.tfstate" }
 }

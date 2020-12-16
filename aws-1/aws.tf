@@ -1,8 +1,48 @@
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "3.19.0"
+    }
+  }
+}
+
+provider "aws" {
+  profile = var.aws_profile
+  region  = var.aws_region
+}
+
+
 #### IAM Instance Profile for the NetApp Connector (3 resources)
 # # # #
-resource "aws_iam_role_policy" "nacm-connector-role-policy" {
+resource "aws_iam_role" "nacm-iam-instance-role" {
+  name = "nacm-iam-instance-role"
+  tags = {
+    Name = "nacm-iam-instance-role"
+    Project = "Infrastructure"
+    Role = "NetApp CVO POC"
+  }
+
+  assume_role_policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "ec2.amazonaws.com"
+        },
+        "Effect": "Allow",
+        "Sid": ""
+      }
+    ]
+  }
+  EOF
+}
+
+resource "aws_iam_role_policy" "nacm-iam-instance-policy" {
   name        = "nacm-connector-role-policy"
-  role = aws_iam_role.nacm-connector-role.id
+  role = aws_iam_role.nacm-iam-instance-role.id
 
   policy = <<EOF
 {
@@ -163,35 +203,10 @@ resource "aws_iam_role_policy" "nacm-connector-role-policy" {
 EOF
 }
 
-resource "aws_iam_role" "nacm-connector-role" {
-  name = "nacm-connector-role"
-  tags = {
-    Name = "nacm-connector-role"
-    Project = "Infrastructure"
-    Role = "NetApp CVO POC"
-  }
-
-  assume_role_policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Action": "sts:AssumeRole",
-        "Principal": {
-          "Service": "ec2.amazonaws.com"
-        },
-        "Effect": "Allow",
-        "Sid": ""
-      }
-    ]
-  }
-  EOF
-}
-
-resource "aws_iam_instance_profile" "nacm-connector-profile" {
-  name = "nacm-connector-profile"
-  role = aws_iam_role.nacm-connector-role.name
-  depends_on = [aws_iam_role_policy.nacm-connector-role-policy]
+resource "aws_iam_instance_profile" "nacm-iam-instance-profile" {
+  name = "nacm-iam-instance-profile"
+  role = aws_iam_role.nacm-iam-instance-role.name
+  depends_on = [aws_iam_role_policy.nacm-iam-instance-policy]
 }
 
 
@@ -380,4 +395,26 @@ resource "aws_security_group" "nacm-cvo-sg" {
     to_port = 0
     cidr_blocks = var.aws_sg_cidr
   }
+}
+
+
+#### Outputs
+#
+output "aws_profile" {
+  value = var.aws_profile
+}
+output "aws_region" {
+  value = var.aws_region
+}
+output "aws_vpc_id" {
+  value = var.aws_vpc_id
+}
+output "aws_nacm-connector-sg-id" {
+  value = aws_security_group.nacm-connector-sg.id
+}
+output "aws_nacm-cvo-sg-id" {
+  value = aws_security_group.nacm-cvo-sg.id
+}
+output "aws_nacm-iam-instance-profile-name" {
+  value = aws_iam_instance_profile.nacm-iam-instance-profile.name
 }
